@@ -1,0 +1,22 @@
+services:
+
+  component-1:
+    build: ./component-1
+    container_name: component-1
+    ports:
+      - "80:80"
+    depends_on:
+      - component-2
+
+  component-2:
+    build: ./component-2
+    container_name: component-2
+    environment:
+      DB_HOST: mongodb://component-3:27017
+      DB_NAME: db
+    depends_on:
+      - component-3
+
+  component-3:
+    image: mongo
+    container_name: component-3

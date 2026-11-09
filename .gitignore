@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.venv/
+component-1/certs/*.key
+.DS_Store
