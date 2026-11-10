@@ -1,5 +1,10 @@
 __pycache__/
 *.pyc
 .venv/
-component-1/certs/*.key
 .DS_Store
+
+# Material local del equipo, fuera del repo público
+/CLAUDE.md
+/acuerdo-inicial.md
+/example/
+/*Laboratory 5.pdf
