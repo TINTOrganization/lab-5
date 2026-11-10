@@ -68,8 +68,9 @@ curl -fsS --cacert "$CA" -H 'X-Forwarded-For: 1.2.3.4' \
   'https://localhost:8443/catalog/?xff=spoof' >/dev/null
 "${SECURE_COMPOSE[@]}" logs --no-color component-1 \
   | grep -E 'xff_in="1\.2\.3\.4"'
-"${SECURE_COMPOSE[@]}" exec -T component-1 nginx -T \
-  | grep -F 'proxy_set_header X-Forwarded-For $remote_addr;'
+MSYS_NO_PATHCONV=1 "${SECURE_COMPOSE[@]}" exec -T component-1 \
+  grep -F 'X-Forwarded-For' \
+  /etc/nginx/snippets/proxy-headers.conf
 if "${SECURE_COMPOSE[@]}" logs --no-color component-3 \
   | grep -q '1\.2\.3\.4'; then
   echo "ERROR: the spoofed address reached catalog" >&2
@@ -82,6 +83,19 @@ for _ in $(seq 1 20); do
   curl -fsS --cacert "$CA" https://localhost:8443/orders/
   echo
 done | grep -o '"instance":"[^"]*"' | sort | uniq -c
+
+echo
+echo "Orders failover:"
+stopped_replica="$("${SECURE_COMPOSE[@]}" ps -q component-2 | head -n 1)"
+test -n "$stopped_replica"
+docker stop "$stopped_replica" >/dev/null
+for _ in $(seq 1 10); do
+  code="$(curl -sS --cacert "$CA" -o /dev/null -w '%{http_code}' \
+    https://localhost:8443/orders/)"
+  test "$code" = 200
+done
+docker start "$stopped_replica" >/dev/null
+echo "10/10 requests returned 200 while one orders replica was stopped"
 
 echo
 echo "nginx configuration:"
