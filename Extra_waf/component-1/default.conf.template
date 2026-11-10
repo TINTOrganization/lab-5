@@ -1,0 +1,28 @@
+# La imagen ya trae ModSecurity + OWASP CRS encendidos; aquí solo van las rutas.
+server_tokens off;
+more_set_headers 'Server: waf';   # no revelar qué tecnología hay detrás
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 8080;
+
+    location /api/ {                       # HTTP  -> component-2
+        proxy_pass http://component-2:5000/;
+    }
+
+    location /ws {                         # WebSocket -> component-3
+        proxy_pass http://component-3:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_read_timeout 1h;             # no cerrar el chat por inactividad
+    }
+
+    location / {                           # página web -> component-4
+        proxy_pass http://component-4:80;
+    }
+}

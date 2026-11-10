@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="440" font-family="Plus Jakarta Sans, DejaVu Sans, sans-serif" font-size="14">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0L10,5L0,10z" fill="#3b2f25"/></marker>
+    <marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0L10,5L0,10z" fill="#a4472b"/></marker>
+  </defs>
+  <rect width="1000" height="440" fill="#fff"/>
+  <text x="500" y="30" text-anchor="middle" font-size="18" font-weight="bold">Etapa 2: sistema con WAF (único punto de entrada)</text>
+  <rect x="20" y="110" width="140" height="60" rx="8" fill="#ece6d6" stroke="#6b5b45"/>
+  <text x="90" y="137" text-anchor="middle" font-weight="bold">Usuario</text>
+  <text x="90" y="157" text-anchor="middle" font-size="12">navegador</text>
+  <rect x="20" y="270" width="140" height="60" rx="8" fill="#f6e1d8" stroke="#a4472b"/>
+  <text x="90" y="297" text-anchor="middle" font-weight="bold" fill="#a4472b">Atacante</text>
+  <text x="90" y="317" text-anchor="middle" font-size="12" fill="#a4472b">SQLi · XSS · sqlmap</text>
+  <rect x="200" y="60" width="780" height="360" rx="10" fill="#fbf8f2" stroke="#b5a58c" stroke-dasharray="6 4"/>
+  <text x="215" y="82" font-size="12" fill="#7a6a55">Docker host</text>
+  <!-- WAF -->
+  <rect x="270" y="130" width="230" height="180" rx="8" fill="#f7ead0" stroke="#b7802a" stroke-width="2"/>
+  <text x="385" y="160" text-anchor="middle" font-weight="bold">component-1 · WAF</text>
+  <text x="385" y="185" text-anchor="middle" font-size="12">nginx (reverse proxy)</text>
+  <text x="385" y="205" text-anchor="middle" font-size="12">+ ModSecurity</text>
+  <text x="385" y="225" text-anchor="middle" font-size="12">+ OWASP Core Rule Set</text>
+  <text x="385" y="255" text-anchor="middle" font-size="12">puerto 8080 (único publicado)</text>
+  <text x="385" y="285" text-anchor="middle" font-size="12" fill="#a4472b">ataque → 403</text>
+  <!-- red interna -->
+  <rect x="580" y="95" width="380" height="305" rx="10" fill="#f1ebdf" stroke="#7a6a55"/>
+  <text x="595" y="115" font-size="12" fill="#5a4a3a">red interna (sin puertos publicados)</text>
+  <rect x="610" y="130" width="330" height="70" rx="8" fill="#e7ebdb" stroke="#5f6b3a"/>
+  <text x="775" y="158" text-anchor="middle" font-weight="bold">component-4 · frontend</text>
+  <text x="775" y="180" text-anchor="middle" font-size="12">Astro + nginx · :80</text>
+  <rect x="610" y="220" width="330" height="70" rx="8" fill="#e7ebdb" stroke="#5f6b3a"/>
+  <text x="775" y="248" text-anchor="middle" font-weight="bold">component-2 · messages-api</text>
+  <text x="775" y="270" text-anchor="middle" font-size="12">Flask + SQLite · HTTP · :5000</text>
+  <rect x="610" y="310" width="330" height="70" rx="8" fill="#e7ebdb" stroke="#5f6b3a"/>
+  <text x="775" y="338" text-anchor="middle" font-weight="bold">component-3 · chat-ws</text>
+  <text x="775" y="360" text-anchor="middle" font-size="12">FastAPI · WebSocket · :8000</text>
+  <!-- conectores -->
+  <line x1="160" y1="140" x2="266" y2="180" stroke="#3b2f25" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="225" y="112" text-anchor="middle" font-size="12">HTTP / WS :8080</text>
+  <line x1="160" y1="300" x2="266" y2="270" stroke="#a4472b" stroke-width="2" stroke-dasharray="7 4" marker-end="url(#r)"/>
+  <line x1="500" y1="170" x2="606" y2="165" stroke="#3b2f25" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="550" y="158" text-anchor="middle" font-size="12">/</text>
+  <line x1="500" y1="220" x2="606" y2="255" stroke="#3b2f25" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="545" y="228" text-anchor="middle" font-size="12">/api/</text>
+  <line x1="500" y1="270" x2="606" y2="345" stroke="#3b2f25" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="535" y="320" text-anchor="middle" font-size="12">/ws</text>
+</svg>
