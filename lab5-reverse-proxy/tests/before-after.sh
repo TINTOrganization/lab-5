@@ -20,8 +20,11 @@ TMP="$(mktemp -d)"
 
 echo "== BEFORE: backends published directly =="
 "${INSECURE_COMPOSE[@]}" up --build -d
-printf 'orders direct:  %s\n' "$(curl -fsS http://localhost:5000/orders/)"
-printf 'catalog direct: %s\n' "$(curl -fsS http://localhost:8000/catalog/)"
+# Retry while the backends start; assign first so a failure stops the script.
+orders_direct="$(curl -fsS --retry 15 --retry-delay 1 --retry-all-errors http://localhost:5000/orders/)"
+catalog_direct="$(curl -fsS --retry 15 --retry-delay 1 --retry-all-errors http://localhost:8000/catalog/)"
+printf 'orders direct:  %s\n' "$orders_direct"
+printf 'catalog direct: %s\n' "$catalog_direct" | cut -c1-120
 "${INSECURE_COMPOSE[@]}" down --remove-orphans
 
 echo
