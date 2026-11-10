@@ -1,0 +1,25 @@
+services:
+  component-2:
+    build: ./component-2
+    environment:
+      SERVICE_NAME: orders
+      PORT: 5000
+    deploy:
+      replicas: 3
+    ports:
+      - "5000"
+    networks:
+      - public
+
+  component-3:
+    build: ./component-3
+    environment:
+      SERVICE_NAME: catalog
+      PORT: 8000
+    ports:
+      - "8000:8000"
+    networks:
+      - public
+
+networks:
+  public: {}
