@@ -19,7 +19,19 @@ Out of scope: rate limiting, connection limits, custom-built proxy code. The ser
 
 ## Repo state
 - `example/` is a finished example from a teammate (Spanish guide, one Flask API + Mongo, nginx with rate limiting, HTTP only). Keep it as a reference; do not edit it.
-- `lab5-reverse-proxy/` is the real work. It only has empty folders (`.gitkeep`) so far; fill them in following the layout below.
+- `lab5-reverse-proxy/` is the real work. Merged into `main` (2026-11-09):
+  - PR #1 `component-3/`: catalog (FastAPI), cache/gzip fragment; static files in `component-1/static/`.
+  - PR #2 `component-2/`: orders (Flask + gunicorn gthread), 3 replicas, failover.
+  - PR #3 `component-1/`: nginx with TLS, security headers in `snippets/`, B and C fragments integrated.
+  - Tested together with Docker (temporary compose): checklist items 3 to 11 pass.
+- Still missing (role D): `docker-compose.yml`, `docker-compose.insecure.yml`, `tests/before-after.sh`, `img/`, `l5_2a.md`.
+- `upstream orders` has `zone orders 64k;`: without it each nginx worker keeps its own round-robin counter and item 6 comes out uneven (15/7/8 instead of 10/10/10). Keep it.
+- Gotchas for the guide:
+  - Run `component-1/gen-certs.sh` before `docker compose up --build`, or the nginx build fails.
+  - Test item 2 through published ports (`curl localhost:5000`), not container IPs: on Linux the Docker host can reach containers on `internal: true` networks.
+  - Test item 9 with GET (`curl -s -o /dev/null -D -`), not `curl -I`: the cache key includes the method.
+  - Failover: the first request to a stopped replica waits `proxy_connect_timeout` (2 s), but returns 200.
+- The GitHub repo moved to `TINTOrganization/lab-5`; the old `CamiloLM/lab-5` remote no longer works.
 - `[SwArch_2026ii] - Laboratory 5.pdf` is the assignment.
 
 ## Layout
