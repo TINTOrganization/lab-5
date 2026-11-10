@@ -2,21 +2,17 @@
 
 Flask orders service (3 replicas) and the load-balancing / failover pieces of the reverse-proxy lab.
 
-> **⚠️ NOT TESTED.** This code was written without running Docker. Nothing here
-> (image build, `nginx -t`, checklist items 6 and 7) has been executed yet.
-> Someone with Docker must run the steps in "Load balancing checklist covered"
-> below and report the real output.
-> The only check done: the Flask routes were called with Flask's test client
-> (no Docker, no nginx) — `/`, `/orders`, `/orders/` return the contract JSON
-> and `/health` returns 200.
+> **Status.** Tested with Docker behind A's `nginx.conf` (PR #3), 3 replicas:
+> `nginx -t` passes, item 6 rotates over the 3 hostnames and item 7 returns
+> only `200` with one replica stopped.
 
 ## What this folder contains
 
 | File | Purpose |
 |---|---|
 | `app/app.py` | Flask orders service. Returns the contract JSON on `/`, `/orders`, `/orders/`; `GET /health` returns 200 (internal only). |
-| `requirements.txt` | `flask`. |
-| `Dockerfile` | `python:3.11-slim`, Flask on `0.0.0.0:5000`. |
+| `requirements.txt` | `flask==3.0.3`, `gunicorn==22.0.0`. |
+| `Dockerfile` | `python:3.11-slim`, gunicorn on `0.0.0.0:5000` (2 workers, gthread). |
 | `nginx-fragment.conf` | nginx snippets to hand off to **A** (`upstream orders`, failover, `location /orders/`). |
 
 ## Contract
@@ -34,7 +30,7 @@ Flask orders service (3 replicas) and the load-balancing / failover pieces of th
 ## Handoffs
 
 - **To A (`component-1/nginx.conf`):** integrate `nginx-fragment.conf`
-  - `upstream orders { server component-2:5000 max_fails=1 fail_timeout=10s; keepalive 16; }` in `http {}`.
+  - `upstream orders { zone orders 64k; server component-2:5000 max_fails=1 fail_timeout=10s; keepalive 16; }` in `http {}`. The `zone` makes all nginx workers share one round-robin counter.
   - `location /orders/` (round-robin + `proxy_next_upstream` failover, `proxy_connect_timeout 2s`, keep-alive, forwarding headers) in the HTTPS `server {}`.
 - **To D (compose files):**
   - `docker-compose.yml`: service `component-2` with `build: ./component-2`, the env vars above, `deploy.replicas: 3`, network `internal`, **no `ports:`**.
@@ -81,6 +77,7 @@ Restore with `docker start <one-replica-name>`.
 
 - nginx resolves `component-2` only at startup. If nginx starts before the replicas, it may fail with `host not found in upstream`; and if a replica comes back with a different IP, nginx will not see it until it is reloaded (`docker exec component-1 nginx -s reload`).
 - `proxy_next_upstream` only retries idempotent requests (GET, HEAD...). The service only exposes GET, so this is enough for the lab.
+- Failover is not free: after a replica stops, the first request sent to it waits `proxy_connect_timeout` (2 s) before nginx retries on the next replica. The client gets `200`, just slower. Then `max_fails=1 fail_timeout=10s` takes that replica out of rotation, so the delay repeats at most once every 10 s.
 
 ## Local smoke test (standalone, no proxy)
 
