@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catalog static assets</title>
+</head>
+<body>
+  <h1>Catalog — static assets</h1>
+  <p>
+    This page is served directly by nginx from <code>/static/</code>.
+    The catalog backend (component-3) never receives this request, which
+    demonstrates the acceleration property of the reverse proxy pattern.
+  </p>
+  <ul>
+    <li><a href="/static/catalog.json">catalog.json</a></li>
+  </ul>
+</body>
+</html>

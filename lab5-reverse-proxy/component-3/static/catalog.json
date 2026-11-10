@@ -1,0 +1,10 @@
+{
+  "service": "catalog",
+  "source": "nginx-static",
+  "note": "Served directly by nginx from /static/. The catalog backend never receives this request.",
+  "items": [
+    {"id": 1, "name": "keyboard"},
+    {"id": 2, "name": "mouse"},
+    {"id": 3, "name": "monitor"}
+  ]
+}
