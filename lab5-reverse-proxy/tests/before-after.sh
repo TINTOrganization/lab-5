@@ -7,13 +7,16 @@ cd "$ROOT"
 CA="component-1/certs/server.crt"
 SECURE_COMPOSE=(docker compose -f docker-compose.yml)
 INSECURE_COMPOSE=(docker compose -f docker-compose.insecure.yml)
+TMP=""
 
 cleanup() {
   "${SECURE_COMPOSE[@]}" down --remove-orphans >/dev/null 2>&1 || true
   "${INSECURE_COMPOSE[@]}" down --remove-orphans >/dev/null 2>&1 || true
+  if [ -n "$TMP" ]; then rm -rf "$TMP"; fi
 }
 trap cleanup EXIT
 cleanup
+TMP="$(mktemp -d)"
 
 echo "== BEFORE: backends published directly =="
 "${INSECURE_COMPOSE[@]}" up --build -d
@@ -107,20 +110,26 @@ echo "nginx configuration:"
 
 echo
 echo "Catalog cache:"
-curl -fsS --cacert "$CA" -D /tmp/catalog-headers-1 -o /tmp/catalog-body-1 \
+curl -fsS --cacert "$CA" -D "$TMP/catalog-headers-1" -o /dev/null \
   -w 'first=%{time_total}s\n' 'https://localhost:8443/catalog/?cache=test'
-curl -fsS --cacert "$CA" -D /tmp/catalog-headers-2 -o /tmp/catalog-body-2 \
+curl -fsS --cacert "$CA" -D "$TMP/catalog-headers-2" -o /dev/null \
   -w 'second=%{time_total}s\n' 'https://localhost:8443/catalog/?cache=test'
-grep -i '^X-Cache-Status:' /tmp/catalog-headers-1 /tmp/catalog-headers-2
+grep -i '^X-Cache-Status:' "$TMP/catalog-headers-1" "$TMP/catalog-headers-2"
 
 echo
 echo "Gzip:"
-curl -fsS --cacert "$CA" -H 'Accept-Encoding: gzip' \
-  -D /tmp/catalog-gzip-headers -o /tmp/catalog-body-gzip \
-  'https://localhost:8443/catalog/?gzip=test'
-grep -Ei '^(Content-Encoding|Content-Length|Vary):' /tmp/catalog-gzip-headers || true
-wc -c /tmp/catalog-body-gzip
+plain_size="$(curl -fsS --cacert "$CA" -o /dev/null -w '%{size_download}' \
+  'https://localhost:8443/catalog/?gzip=test')"
+gzip_size="$(curl -fsS --cacert "$CA" -H 'Accept-Encoding: gzip' \
+  -D "$TMP/catalog-gzip-headers" -o /dev/null -w '%{size_download}' \
+  'https://localhost:8443/catalog/?gzip=test')"
+grep -Ei '^(Content-Encoding|Vary):' "$TMP/catalog-gzip-headers"
+printf 'without gzip: %s bytes\nwith gzip:    %s bytes\n' "$plain_size" "$gzip_size"
+test "$gzip_size" -lt "$plain_size"
 
 echo
 echo "Static file:"
 curl -fsS --cacert "$CA" https://localhost:8443/static/index.html | head -n 3
+# upstream=- in the access log: nginx answered by itself, no backend involved.
+"${SECURE_COMPOSE[@]}" logs --no-color component-1 \
+  | grep -E '"GET /static/index\.html HTTP/[0-9.]+" 200 [0-9]+ upstream=- '
