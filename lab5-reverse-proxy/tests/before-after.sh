@@ -16,19 +16,23 @@ trap cleanup EXIT
 cleanup
 
 echo "== BEFORE: backends published directly =="
-"${INSECURE_COMPOSE[@]}" up --build -d --scale component-2=3
-orders_port="$("${INSECURE_COMPOSE[@]}" port component-2 5000 | head -n 1 | sed -E 's/.*:([0-9]+)$/\1/')"
-catalog_port="$("${INSECURE_COMPOSE[@]}" port component-3 8000 | sed -E 's/.*:([0-9]+)$/\1/')"
-test -n "$orders_port"
-test -n "$catalog_port"
-printf 'orders direct:  %s\n' "$(curl -fsS "http://127.0.0.1:${orders_port}/orders/")"
-printf 'catalog direct: %s\n' "$(curl -fsS "http://127.0.0.1:${catalog_port}/catalog/")"
+"${INSECURE_COMPOSE[@]}" up --build -d
+printf 'orders direct:  %s\n' "$(curl -fsS http://localhost:5000/orders/)"
+printf 'catalog direct: %s\n' "$(curl -fsS http://localhost:8000/catalog/)"
 "${INSECURE_COMPOSE[@]}" down --remove-orphans
 
 echo
 echo "== AFTER: only nginx is published =="
 MSYS_NO_PATHCONV=1 ./component-1/gen-certs.sh
 "${SECURE_COMPOSE[@]}" up --build -d --scale component-2=3
+
+echo
+echo "Backend host ports after secure topology:"
+if curl -sS --connect-timeout 2 http://localhost:5000/orders/ >/dev/null; then
+  echo "ERROR: orders is reachable at localhost:5000" >&2
+  exit 1
+fi
+echo "localhost:5000 is not reachable"
 
 published="$("${SECURE_COMPOSE[@]}" ps --format '{{.Service}} {{.Ports}}')"
 printf '%s\n' "$published"
