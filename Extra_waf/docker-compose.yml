@@ -1,0 +1,24 @@
+# ETAPA 2: con WAF. Solo el WAF abre un puerto; lo demás queda escondido.
+services:
+  component-1:
+    image: owasp/modsecurity-crs:nginx-alpine
+    container_name: component-1
+    ports: ["127.0.0.1:8080:8080"]
+    environment:
+      MODSEC_RULE_ENGINE: ${WAF_MODE:-On}   # On | DetectionOnly | Off
+    volumes:
+      - ./component-1/default.conf.template:/etc/nginx/templates/conf.d/default.conf.template:ro
+    depends_on: [component-2, component-3, component-4]
+
+  component-2:
+    build: ./component-2
+
+  component-3:
+    build: ./component-3
+
+  component-4:
+    build:
+      context: ./component-4
+      args:
+        PUBLIC_API_URL: /api
+        PUBLIC_WS_URL: ""   # vacío = usar el mismo servidor (ws://localhost:8080/ws)

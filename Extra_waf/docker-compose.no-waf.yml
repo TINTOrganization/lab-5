@@ -1,0 +1,17 @@
+# ETAPA 1: sin WAF. Cada servicio abre su propio puerto al exterior.
+services:
+  component-2:
+    build: ./component-2
+    ports: ["127.0.0.1:5000:5000"]
+
+  component-3:
+    build: ./component-3
+    ports: ["127.0.0.1:8000:8000"]
+
+  component-4:
+    build:
+      context: ./component-4
+      args:
+        PUBLIC_API_URL: http://localhost:5000
+        PUBLIC_WS_URL: ws://localhost:8000/ws
+    ports: ["127.0.0.1:4321:80"]

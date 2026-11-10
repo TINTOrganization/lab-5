@@ -1,0 +1,70 @@
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Chat · Laboratorio WAF</title>
+    <style>body { font-family: sans-serif; max-width: 680px; margin: 2rem auto; }</style>
+  </head>
+  <body>
+    <h1>Chat con historial</h1>
+    <input id="user" value="ana" /> <button id="connect">Conectar</button>
+    <div id="log"></div>
+    <input id="text" placeholder="mensaje" /> <button id="send">Enviar</button>
+
+    <h2>Historial</h2>
+    <input id="q" placeholder="buscar" /> <button id="search">Buscar</button>
+    <ul id="results"></ul>
+
+    <h2>Probar ataques</h2>
+    <button id="sqli">SQL injection</button>
+    <button id="xss">XSS guardado</button>
+    <button id="wsxss">XSS al conectar</button>
+    <button id="frame">XSS dentro del chat</button>
+    <pre id="out"></pre>
+
+    <script>
+      const API = import.meta.env.PUBLIC_API_URL;
+      const WS = import.meta.env.PUBLIC_WS_URL || `ws://${location.host}/ws`;
+      const XSS = `<img src=x onerror="alert('XSS')">`;
+      const $ = (id) => document.getElementById(id);
+      const show = (t) => ($("out").textContent = t + "\n" + $("out").textContent);
+      let ws;
+
+      // innerHTML a propósito: si un XSS llega al navegador, se ejecuta
+      function connect(user) {
+        ws?.close();
+        ws = new WebSocket(`${WS}?user=${encodeURIComponent(user)}`);
+        ws.onopen = () => show(`WebSocket abierto (101) como ${user}`);
+        ws.onerror = () => show("WebSocket rechazado");
+        ws.onmessage = (e) => ($("log").innerHTML += `<p>${e.data}</p>`);
+        ws.onclose = () => show("WebSocket cerrado");
+      }
+      async function post(text) {
+        const r = await fetch(`${API}/messages`, { method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user: $("user").value, text }) });
+        show(`POST /messages → ${r.status}`);
+        return r.ok;
+      }
+      async function search(q) {
+        const r = await fetch(`${API}/messages?q=${encodeURIComponent(q)}`);
+        show(`GET /messages?q=${q} → ${r.status}`);
+        if (r.ok) $("results").innerHTML = (await r.json())
+          .map((m) => `<li><b>${m.user}</b>: ${m.text}</li>`).join("");
+      }
+
+      $("connect").onclick = () => connect($("user").value);
+      $("send").onclick = async () => { if (await post($("text").value)) ws.send($("text").value); };
+      $("search").onclick = () => search($("q").value);
+      $("sqli").onclick = () => search("' UNION SELECT name, secret FROM users--");
+      $("xss").onclick = async () => { await post(XSS); search(""); };
+      $("wsxss").onclick = () => connect(XSS);
+      $("frame").onclick = () => {
+        if (ws.readyState !== WebSocket.OPEN) return show("Primero conéctese con el botón Conectar");
+        ws.send(XSS);
+        show("XSS enviado por el WebSocket abierto");
+      };
+      connect("ana");
+      search("");
+    </script>
+  </body>
+</html>

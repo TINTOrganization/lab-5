@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" font-family="Plus Jakarta Sans, DejaVu Sans, sans-serif" font-size="14">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0L10,5L0,10z" fill="#3b2f25"/></marker>
+    <marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0L10,5L0,10z" fill="#a4472b"/></marker>
+  </defs>
+  <rect width="900" height="420" fill="#fff"/>
+  <text x="450" y="30" text-anchor="middle" font-size="18" font-weight="bold">Etapa 1: sistema sin WAF (cada servicio expuesto)</text>
+  <!-- clientes -->
+  <rect x="30" y="110" width="150" height="60" rx="8" fill="#ece6d6" stroke="#6b5b45"/>
+  <text x="105" y="137" text-anchor="middle" font-weight="bold">Usuario</text>
+  <text x="105" y="157" text-anchor="middle" font-size="12">navegador</text>
+  <rect x="30" y="270" width="150" height="60" rx="8" fill="#f6e1d8" stroke="#a4472b"/>
+  <text x="105" y="297" text-anchor="middle" font-weight="bold" fill="#a4472b">Atacante</text>
+  <text x="105" y="317" text-anchor="middle" font-size="12" fill="#a4472b">SQLi · XSS · sqlmap</text>
+  <!-- host -->
+  <rect x="330" y="60" width="540" height="340" rx="10" fill="#fbf8f2" stroke="#b5a58c" stroke-dasharray="6 4"/>
+  <text x="345" y="82" font-size="12" fill="#7a6a55">Docker host (red por defecto, puertos publicados)</text>
+  <rect x="560" y="100" width="290" height="70" rx="8" fill="#e7ebdb" stroke="#5f6b3a"/>
+  <text x="705" y="128" text-anchor="middle" font-weight="bold">component-4 · frontend</text>
+  <text x="705" y="150" text-anchor="middle" font-size="12">Astro + nginx · puerto 4321</text>
+  <rect x="560" y="200" width="290" height="70" rx="8" fill="#e7ebdb" stroke="#5f6b3a"/>
+  <text x="705" y="228" text-anchor="middle" font-weight="bold">component-2 · messages-api</text>
+  <text x="705" y="250" text-anchor="middle" font-size="12">Flask + SQLite · HTTP · puerto 5000</text>
+  <rect x="560" y="300" width="290" height="70" rx="8" fill="#e7ebdb" stroke="#5f6b3a"/>
+  <text x="705" y="328" text-anchor="middle" font-weight="bold">component-3 · chat-ws</text>
+  <text x="705" y="350" text-anchor="middle" font-size="12">FastAPI · WebSocket · puerto 8000</text>
+  <!-- conectores usuario -->
+  <line x1="180" y1="130" x2="556" y2="135" stroke="#3b2f25" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="370" y="122" text-anchor="middle" font-size="12">HTTP :4321</text>
+  <line x1="180" y1="145" x2="556" y2="230" stroke="#3b2f25" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="395" y="178" text-anchor="middle" font-size="12">HTTP :5000</text>
+  <line x1="180" y1="160" x2="556" y2="325" stroke="#3b2f25" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="380" y="302" text-anchor="middle" font-size="12">WebSocket :8000</text>
+  <!-- conectores atacante -->
+  <line x1="180" y1="290" x2="556" y2="245" stroke="#a4472b" stroke-width="2" stroke-dasharray="7 4" marker-end="url(#r)"/>
+  <line x1="180" y1="310" x2="556" y2="345" stroke="#a4472b" stroke-width="2" stroke-dasharray="7 4" marker-end="url(#r)"/>
+  <text x="400" y="380" text-anchor="middle" font-size="12" fill="#a4472b">los ataques llegan directo a los servicios</text>
+</svg>
